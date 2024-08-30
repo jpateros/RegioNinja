@@ -21,8 +21,10 @@ public class Executor {
         String query = " SELECT REGIONS, REGIONS.p;"
                 + "FROM NYC_census_tracts;"
                 + "WHERE p=5 ,"
-                + "5500 <= MIN ON population, OBJECTIVE COMPACT,"
+                + "6000 <= AVG ON income, 0 <= MIN ON population, OBJECTIVE COMPACT,"
                 + "OPTIMIZATION CONNECTED, HEURISTIC TABU;";
+
+
         QuerySpecifics queryInfo = null;
         try {
             parseQuery.validateQuery(query);
@@ -32,11 +34,13 @@ public class Executor {
             System.out.println(e);
         }
 //Assume pmax will return one seed at random
-        Set<Area> seedSet = SeedSelection(areaList, (int) queryInfo.getPValueDouble(), 5, true, parseQuery.getQueryInfo(), true);
-
+        Set<Area> seedSet = SeedSelection(areaList, (int) queryInfo.getPValueDouble(), 50, true, parseQuery.getQueryInfo(), false);
+        System.out.println(areaList);
         System.out.println(areaList.size());
 
-        List<Area> dummyAreas = createGridAreas();
-       // MutableGraph<Area> graphOfValidAreas = createGraphFromAreas(dummyAreas);
+        List<Area> regionGrowing = regionGrowing(seedSet,areaList,queryInfo);
+        System.out.println(regionGrowing);
+        System.out.println(regionGrowing.size());
+        // MutableGraph<Area> graphOfValidAreas = createGraphFromAreas(dummyAreas);
     }
 }

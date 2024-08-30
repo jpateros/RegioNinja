@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import com.google.common.graph.*;
 
+import static ExecutorFiles.SeedSelection.createImageOfState;
 
 public class RegionGrowing
 {
@@ -74,47 +75,129 @@ public class RegionGrowing
 
         return graph;
     }
-
-    public static List<Area> regionGrowing(Set<Area> seeds, List<Area> filteredRegions, MutableGraph<Area> regionsGraph, QuerySpecifics queryInfo) {
-
-        //TODO: how do i ensure i minimized the objective function also how do i know who my region neighbors are
-            //loop over all of the region neughbors and choose the one valid neighbor who maintains constraint and has the min value for the objective function
-        //keep adding areas to region until AVG constraint is met ( need to see if adding the neighbor would increase the avg count etc.)
-
-        for (Area seed: seeds) {
-
-            List<Area> regionsToCompare = new ArrayList<>();
+    // Main method for region growing
+    public static List<Area> regionGrowing(Set<Area> seeds, List<Area> filteredRegions,QuerySpecifics queryInfo) {
+        List<Area> validRegions = new ArrayList<>();
+        MutableGraph<Area> regionsGraph = createGraphFromAreas(filteredRegions);
+        for (Area seed : seeds) {
             Set<Area> currentRegion = new HashSet<>();
             currentRegion.add(seed);
-            //loop over all the neighbors of this current node
-            for (Area adjacentArea: regionsGraph.adjacentNodes(seed)) {
+            boolean regionIsValid = false;
 
-                //the second that our region is valid we should stop growing the region
-                if (maintainsConstraints(currentRegion, queryInfo)) {
+            while (!regionIsValid) {
+                List<Area> validNeighbors = new ArrayList<>();
+                Area bestNeighbor = null;
+                double minObjectiveValue = Double.MAX_VALUE;
+                int i = 0;
+                // Loop over all neighbors of the current region
+                for (Area adjacentArea : regionsGraph.adjacentNodes(seed)) {
+                    // Temporarily add the neighbor to the region to test constraints
+                    currentRegion.add(adjacentArea);
+
+                    if (maintainsConstraints(currentRegion, queryInfo)) {
+                        validNeighbors.add(adjacentArea);
+                        createImageOfState(currentRegion, "currentRegion" + i, "Testing: " );
+                        i++;
+                        // Calculate the objective function value for the current region
+                        double objectiveValue = calculateObjectiveFunction(currentRegion, queryInfo);
+
+                        // Select the neighbor that minimizes the objective function
+                        if (objectiveValue < minObjectiveValue) {
+                            minObjectiveValue = objectiveValue;
+                            bestNeighbor = adjacentArea;
+                        }
+                    }
+                    // Remove the neighbor after testing
+                    currentRegion.remove(adjacentArea);
+                }
+
+                // If no valid neighbors can be found, stop growing the region
+                if (bestNeighbor == null) {
                     break;
                 }
-                else  {
-                    //grow region to the minimum objective function
-                    //aka loop over all the neighbors return a list of them that are valid and then for each
-                    //one of those valid neighbors return the minimum of the
 
+                // Add the best neighbor to the region
+                currentRegion.add(bestNeighbor);
 
+                // Check if the region now satisfies the constraints
+                if (maintainsConstraints(currentRegion, queryInfo)) {
+                    regionIsValid = true;
                 }
-
             }
-            //aka we exhausted all the possibilties ad could not meet the constraints
+
+            // Handle regions that do not meet the criteria
             if (!maintainsConstraints(currentRegion, queryInfo)) {
-                //TODO: handle logic for region not meeting criteria
-                //if we are using pMAX ensure we get rid of the area if we are not going to be able to
+//                System.out.println(validRegions);
                 if (queryInfo.getPValueEnum() == QueryEnums.pType.PMAX) {
                     filteredRegions.remove(seed);
+                } else {
+                    // Handle other cases as necessary
                 }
+            } else {
+                // Add the valid region to the list of valid regions
+                validRegions.addAll(currentRegion);
             }
-
-
         }
 
-        return null;
+        return validRegions;
+    }
+
+    //Below code by John
+
+//    public static List<Area> regionGrowing(Set<Area> seeds, List<Area> filteredRegions, MutableGraph<Area> regionsGraph, QuerySpecifics queryInfo) {
+//
+//        //TODO: how do i ensure i minimized the objective function also how do i know who my region neighbors are
+//            //loop over all of the region neughbors and choose the one valid neighbor who maintains constraint and has the min value for the objective function
+//        //keep adding areas to region until AVG constraint is met ( need to see if adding the neighbor would increase the avg count etc.)
+//
+//        for (Area seed: seeds) {
+//
+//            List<Area> regionsToCompare = new ArrayList<>();
+//            Set<Area> currentRegion = new HashSet<>();
+//            currentRegion.add(seed);
+//            //loop over all the neighbors of this current node
+//            for (Area adjacentArea: regionsGraph.adjacentNodes(seed)) {
+//
+//
+//                //the second that our region is valid we should stop growing the region
+//                if (maintainsConstraints(currentRegion, queryInfo)) {
+//                    break;
+//                }
+//                else  {
+//                    //grow region to the minimum objective function
+//                    //aka loop over all the neighbors return a list of them that are valid and then for each
+//                    //one of those valid neighbors return the minimum of the
+//
+//
+//                }
+//
+//            }
+//            //aka we exhausted all the possibilties ad could not meet the constraints
+//            if (!maintainsConstraints(currentRegion, queryInfo)) {
+//                //TODO: handle logic for region not meeting criteria
+//                //if we are using pMAX ensure we get rid of the area if we are not going to be able to
+//                if (queryInfo.getPValueEnum() == QueryEnums.pType.PMAX) {
+//                    filteredRegions.remove(seed);
+//                }
+//            }
+//
+//
+//        }
+//
+//        return null;
+//    }
+
+    // Method to calculate the objective function value for a region
+    public static double calculateObjectiveFunction(Set<Area> currentRegion, QuerySpecifics queryInfo) {
+        double objectiveValue = 0.0;
+
+        // Assuming we're minimizing the sum of spatially extensive attributes as the objective
+        for (Area area : currentRegion) {
+            objectiveValue += area.getSpatiallyExtensiveAttribute();
+        }
+
+        // Depending on the specific objective, you may want to incorporate other factors
+        return objectiveValue;
     }
 
     //Takes input of a set containing a bunch of areas and will return boolean true if it meets all the constraints specified
@@ -131,7 +214,11 @@ public class RegionGrowing
                         valOverExtensiveAttributes += area.getSpatiallyExtensiveAttribute();
                     }
                     break;
-//                case MIN:
+                case MIN:
+                    for (Area area: neighborhood) {
+                        valOverExtensiveAttributes = Math.min(valOverExtensiveAttributes,area.getSpatiallyExtensiveAttribute());
+                    }
+
 //                //TODO: do i even need to handle these since we test min max constraint for all the areas in seed selection
 //                    break;
 //                case MAX:
@@ -150,15 +237,18 @@ public class RegionGrowing
 
                     break;
             }
+            System.out.println("Extensive = " + valOverExtensiveAttributes);
             if (constraint.getComparisonOperator1() != null) {
                 if (!compare(constraint.getLowerBound(), valOverExtensiveAttributes, constraint.getComparisonOperator1().trim())) {
                     //current set does not meet the constraints as specified by the query information
+                    System.out.println("False1");
                     return false;
                 }
             }
 
             if (constraint.getComparisonOperator2() != null) {
                 if (!compare(valOverExtensiveAttributes, constraint.getUpperBound(), constraint.getComparisonOperator2().trim())) {
+                    System.out.println("False2");
                     return false;
                 }
             }
