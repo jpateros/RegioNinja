@@ -34,7 +34,7 @@ public class Executor {
             System.out.println(e);
         }
 //Assume pmax will return one seed at random
-        Set<Area> seedSet = SeedSelection(areaList, (int) queryInfo.getPValueDouble(), 50, true, parseQuery.getQueryInfo(), false);
+        Set<Area> seedSet = SeedSelection(areaList, (int) queryInfo.getPValueDouble(), 50, true, parseQuery.getQueryInfo(), true);
         System.out.println(areaList);
         System.out.println(areaList.size());
 

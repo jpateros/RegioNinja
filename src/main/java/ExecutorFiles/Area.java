@@ -15,6 +15,8 @@ public class Area {
     private double[] centroid;
     private Color customColor; // Field for CustomColor enum
 
+    private boolean belongsToRegion;
+
     // Constructor with Polygon geometry
     public Area(int identifier, Polygon geometry, double spatiallyExtensiveAttribute, double dissimilarityAttribute) {
         this(identifier, geometry, spatiallyExtensiveAttribute, dissimilarityAttribute, Color.BLUE); // Default color is blue
@@ -125,6 +127,14 @@ public class Area {
         this.customColor = customColor;
     }
 
+    public void setBelongsToRegion(boolean belongsToRegion){
+        this.belongsToRegion = belongsToRegion;
+    }
+
+    public boolean getBelongsToRegion()
+    {
+        return belongsToRegion;
+    }
 
     @Override
     public String toString() {
