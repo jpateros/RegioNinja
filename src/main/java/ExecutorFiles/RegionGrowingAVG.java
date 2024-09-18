@@ -1,5 +1,8 @@
 package ExecutorFiles;
 
+import com.google.common.graph.GraphBuilder;
+import com.google.common.graph.MutableGraph;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.*;
@@ -12,9 +15,15 @@ import static ExecutorFiles.RegionGrowing.doPolygonsOverlap;
 public class RegionGrowingAVG {
     public static void main(String[] args) {
 
+        //initlaize the seeds and graph that makes up the area for the region growing average testing
+        Set<Area> seeds = new HashSet<>();
+        MutableGraph<Area> empPaperExample = createInputGraph(seeds);
+
+
+
     }
 
-    public static List<Set<Area>> regionGrowingAvg(Set<Area> seedAreas, double low, double high, Set<Area> allAreas, double s) {
+    public static List<Set<Area>> regionGrowingAvg(Set<Area> seedAreas, double low, double high, MutableGraph<Area> regions) {
         //making assumption that substep 2.1 is already done for min max filtering
         List<Set<Area>> regionListP = null;
 
@@ -33,7 +42,7 @@ public class RegionGrowingAVG {
             }
         }
 
-       // regionListP = unAssignedAreasAlgo(s, low, )
+       regionListP = unAssignedAreasAlgo(low, high, unassigned_low, unassigned_high, regions);
 
 
 
@@ -41,7 +50,7 @@ public class RegionGrowingAVG {
         return regionListP;
     }
 
-    public static List<Set<Area>> unAssignedAreasAlgo(double s, double low, double u, Set<Area> unassigned_low, Set<Area> unassigned_high, Set<Area> allAreas)
+    public static List<Set<Area>> unAssignedAreasAlgo(double low, double u, Set<Area> unassigned_low, Set<Area> unassigned_high, MutableGraph<Area> allArea)
     {
         List<Set<Area>> finalRegions = new ArrayList<>();
         Set<Area> u_areas = union(unassigned_low, unassigned_high);
@@ -120,71 +129,84 @@ public class RegionGrowingAVG {
     }
 
 
-//    public static List<Area> setupRegions() {
-//        List<Area> areaList = new ArrayList<>();
-//
-//        int cellSize = 50;
-//        int[] xCoords1 = {0 * cellSize, 0 * cellSize, 1 * cellSize, 1 * cellSize};
-//        int[] yCoords1 = {0 * cellSize, 3 * cellSize, 3 * cellSize, 0 * cellSize};
-//
-//        int[] xCoords2 = {1 * cellSize, 2 * cellSize, 2 * cellSize, 1 * cellSize};
-//        int[] yCoords2 = {0 * cellSize, 0 * cellSize, 1 * cellSize, 1 * cellSize};
-//
-//        int[] xCoords3 = {2 * cellSize, 3 * cellSize, 3 * cellSize, 2 * cellSize};
-//        int[] yCoords3 = {0 * cellSize, 0 * cellSize, 1 * cellSize, 1 * cellSize};
-//
-//        double[] xCoords4 = {1 * cellSize, 2.5 * cellSize, 3 * cellSize, 3 * cellSize};
-//        double[] yCoords4 = {1 * cellSize, 1 * cellSize, 3 * cellSize, 0 * cellSize};
-//
-//        int[] xCoords5 = {2 * cellSize, 2 * cellSize, 4 * cellSize, 4 * cellSize};
-//        int[] yCoords5 = {3 * cellSize, 6 * cellSize, 6 * cellSize, 3 * cellSize};
-//
-//        int[] xCoords6 = {4 * cellSize, 4 * cellSize, 6 * cellSize, 6 * cellSize};
-//        int[] yCoords6 = {3 * cellSize, 6 * cellSize, 6 * cellSize, 3 * cellSize};
-//
-//        int[] xCoords7 = {3 * cellSize, 3 * cellSize, 5 * cellSize, 5 * cellSize};
-//        int[] yCoords7 = {0 * cellSize, 3 * cellSize, 3 * cellSize, 0 * cellSize};
-//
-//        int[] xCoords8 = {5 * cellSize, 5 * cellSize, 6 * cellSize, 6 * cellSize};
-//        int[] yCoords8 = {3 * cellSize, 6 * cellSize, 6 * cellSize, 3 * cellSize};
-//
-//        Polygon polygon1 = new Polygon(xCoords1, yCoords1, 4);
-//        Polygon polygon2 = new Polygon(xCoords2, yCoords2, 4);
-//        Polygon polygon3 = new Polygon(xCoords3, yCoords3, 4);
-//        Polygon polygon4 = new Polygon(xCoords4, yCoords4, 4);
-//        Polygon polygon5 = new Polygon(xCoords5, yCoords5, 4);
-//        Polygon polygon6 = new Polygon(xCoords6, yCoords6, 4);
-//        Polygon polygon7 = new Polygon(xCoords7, yCoords7, 4);
-//        Polygon polygon8 = new Polygon(xCoords8, yCoords8, 4);
-//
-//        int minValue = 5000;
-//        int maxValue = 10000;
-//        Random rand = new Random();
-//
-//        // right now the spatially extensive attribute is the population
-//        Area area1 = new Area(1, polygon1, 1, 0.0);
-//        Area area2 = new Area(1, polygon2, 1, 0.0);
-//        Area area3 = new Area(1, polygon3, 1, 0.0);
-//        Area area4 = new Area(1, polygon4, 1, 0.0);
-//        Area area5 = new Area(1, polygon5, 1, 0.0);
-//        Area area6 = new Area(1, polygon6, 1, 0.0);
-//        Area area7 = new Area(1, polygon7, 1, 0.0);
-//        Area area8 = new Area(1, polygon8, 1, 0.0);
-//
-//        areaList.add(area1);
-//        areaList.add(area2);
-//        areaList.add(area3);
-//        areaList.add(area4);
-//        areaList.add(area5);
-//        areaList.add(area6);
-//        areaList.add(area7);
-//        areaList.add(area8);
-//
-//        printPolygons(areaList, "testingThisB" + ".png", "yep");
-//
-//        return areaList;
-//    }
-//
-//}
+    public static MutableGraph<Area> createInputGraph(Set<Area> seeds) {
+
+        MutableGraph<Area> graph = GraphBuilder.undirected().build();
+
+        int[] xCoords = {1, 4, 1, 4};
+        int[] yCoords = {0, 2, 2, 0};
+        Polygon dummyPoly = new Polygon(xCoords, yCoords, 4);
+        Area a1 = new Area(1, dummyPoly, 1, 11);
+        Area a2 = new Area(2, dummyPoly, 2, 12);
+        Area a3 = new Area(3, dummyPoly, 3, 13);
+        Area a4 = new Area(4, dummyPoly, 4, 14);
+        Area a5 = new Area(5, dummyPoly, 5, 15);
+        Area a6 = new Area(6, dummyPoly, 6, 16);
+        Area a7 = new Area(7, dummyPoly, 7, 17);
+        Area a8 = new Area(8, dummyPoly, 8, 18);
+        Area a9 = new Area(9, dummyPoly, 9, 19);
+
+        graph.addNode(a1);
+        graph.addNode(a2);
+        graph.addNode(a3);
+        graph.addNode(a4);
+        graph.addNode(a5);
+        graph.addNode(a6);
+        graph.addNode(a7);
+        graph.addNode(a8);
+        graph.addNode(a9);
+        //a1
+        graph.putEdge(a1, a2);
+        graph.putEdge(a1, a3);
+        graph.putEdge(a1, a4);
+        //a2
+        graph.putEdge(a2, a1);
+        graph.putEdge(a2, a4);
+        graph.putEdge(a2, a5);
+        graph.putEdge(a2, a6);
+        //a3
+        graph.putEdge(a3, a1);
+        graph.putEdge(a3, a4);
+        graph.putEdge(a3, a7);
+        //a4
+        graph.putEdge(a4, a1);
+        graph.putEdge(a4, a2);
+        graph.putEdge(a4, a6);
+        graph.putEdge(a4, a9);
+        graph.putEdge(a4, a7);
+        graph.putEdge(a4, a3);
+        //a5
+        graph.putEdge(a5, a2);
+        graph.putEdge(a5, a6);
+        graph.putEdge(a5, a8);
+        //a6
+        graph.putEdge(a6, a2);
+        graph.putEdge(a6, a5);
+        graph.putEdge(a6, a9);
+        graph.putEdge(a6, a4);
+        //a7
+        graph.putEdge(a7, a3);
+        graph.putEdge(a7, a4);
+        graph.putEdge(a7, a9);
+        //a8
+        graph.putEdge(a8, a5);
+        //a9
+        graph.putEdge(a9, a6);
+        graph.putEdge(a9, a4);
+        graph.putEdge(a9, a7);
+
+        //min seeds
+        seeds.add(a2);
+        seeds.add(a3);
+        seeds.add(a4);
+
+        //max seeds
+        seeds.add(a6);
+        seeds.add(a7);
+
+        //TODO Do I need tto have the min and max seeds in different sets?
+
+        return graph;
+    }
 
 }

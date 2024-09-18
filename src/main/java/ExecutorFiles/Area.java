@@ -139,15 +139,17 @@ public class Area {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Geometry Points: [");
-        for (int i = 0; i < geometry.npoints; i++) {
-            sb.append("(").append(geometry.xpoints[i]).append(",").append(geometry.ypoints[i]).append(")");
-            if (i < geometry.npoints - 1) {
-                sb.append(", ");
-            }
-        }
-        sb.append("], Centroid: (").append(centroid[0]).append(", ").append(centroid[1]).append(")");
-        sb.append(" Spatially Extensive Attribute: " + spatiallyExtensiveAttribute);
+//        sb.append("Geometry Points: [");
+//        for (int i = 0; i < geometry.npoints; i++) {
+//            sb.append("(").append(geometry.xpoints[i]).append(",").append(geometry.ypoints[i]).append(")");
+//            if (i < geometry.npoints - 1) {
+//                sb.append(", ");
+//            }
+//        }
+//        sb.append("], Centroid: (").append(centroid[0]).append(", ").append(centroid[1]).append(")");
+//        sb.append(" Spatially Extensive Attribute: " + spatiallyExtensiveAttribute);
+//        return sb.toString();
+        sb.append(getIdentifier());
         return sb.toString();
     }
 
