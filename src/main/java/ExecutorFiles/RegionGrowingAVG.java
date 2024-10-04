@@ -99,11 +99,11 @@ public class RegionGrowingAVG {
         return sum / regions.size();
     }
 
-    public static Set<Area> getNeighbors(Set<Area> interest, Set<Area> totalAreas)
+    public static Set<Area> getNeighbors(Set<Area> interest, MutableGraph<Area> totalAreas)
     {
         Set<Area> neighbors = new HashSet<>();
         for (Area regionArea : interest) {
-            for (Area testOutsideArea : totalAreas) {
+            for (Area testOutsideArea : totalAreas.nodes()) {
                 if (doPolygonsOverlap(regionArea.getPolygon(), testOutsideArea.getPolygon()))
                 {
                     neighbors.add(testOutsideArea);
